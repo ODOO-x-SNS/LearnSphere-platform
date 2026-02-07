@@ -1,35 +1,65 @@
-import { api } from '../lib/api';
+import { api } from "../lib/api";
 import type {
-  Course, Lesson, Quiz, User, PaginatedResponse,
-  ReportRow, ReportSummary, AuditLog, Review,
-  UploadInitResponse, FileMetadata,
-} from '../types';
+  Course,
+  Lesson,
+  Quiz,
+  User,
+  PaginatedResponse,
+  ReportRow,
+  ReportSummary,
+  CourseRequest,
+  Review,
+  UploadInitResponse,
+  FileMetadata,
+} from "../types";
 
 // Auth
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<{ accessToken: string; user: User }>('/auth/login', { email, password }),
-  me: () => api.get<User>('/auth/me'),
-  refresh: () => api.post('/auth/refresh'),
+    api.post<{ accessToken: string; user: User }>("/auth/login", {
+      email,
+      password,
+    }),
+  me: () => api.get<User>("/auth/me"),
+  refresh: () => api.post("/auth/refresh"),
 };
 
 // Users
 export const usersApi = {
   updateProfile: (data: { name?: string; bio?: string; avatarUrl?: string }) =>
-    api.patch<User>('/users/me', data),
+    api.patch<User>("/users/me", data),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
-    api.patch<{ message: string }>('/users/me/password', data),
+    api.patch<{ message: string }>("/users/me/password", data),
+};
+
+// Instructors
+export const instructorsApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get<PaginatedResponse<User>>("/users/instructors", { params }),
+  get: (id: string) =>
+    api.get<
+      User & {
+        coursesCount: number;
+        studentCount: number;
+        courses: Array<{
+          id: string;
+          title: string;
+          published: boolean;
+          createdAt: string;
+        }>;
+      }
+    >(`/users/instructors/${id}`),
 };
 
 // Courses
 export const coursesApi = {
   list: (params?: Record<string, unknown>) =>
-    api.get<PaginatedResponse<Course>>('/courses', { params }),
+    api.get<PaginatedResponse<Course>>("/courses", { params }),
   listBackoffice: (params?: Record<string, unknown>) =>
-    api.get<PaginatedResponse<Course>>('/courses/backoffice', { params }),
+    api.get<PaginatedResponse<Course>>("/courses/backoffice", { params }),
   get: (id: string) => api.get<Course>(`/courses/${id}`),
   create: (data: { title: string; description?: string; tags?: string[] }) =>
-    api.post<Course>('/courses', data),
+    api.post<Course>("/courses", data),
   update: (id: string, data: Partial<Course>) =>
     api.patch<Course>(`/courses/${id}`, data),
   publish: (id: string) => api.post<Course>(`/courses/${id}/publish`),
@@ -62,30 +92,49 @@ export const quizzesApi = {
 // Uploads
 export const uploadsApi = {
   init: (file: { filename: string; mimeType: string; size: number }) =>
-    api.post<UploadInitResponse>('/uploads/init', file),
+    api.post<UploadInitResponse>("/uploads/init", file),
   complete: (fileId: string) =>
-    api.post<{ file: FileMetadata }>('/uploads/complete', { fileId }),
+    api.post<{ file: FileMetadata }>("/uploads/complete", { fileId }),
 };
 
 // Reports
 export const reportsApi = {
   courseProgress: (params?: Record<string, unknown>) =>
-    api.get<{ summary: ReportSummary; rows: ReportRow[]; paging: { nextCursor?: string; limit: number } }>(
-      '/reports/course-progress', { params }
-    ),
+    api.get<{
+      summary: ReportSummary;
+      rows: ReportRow[];
+      paging: { nextCursor?: string; limit: number };
+    }>("/reports/course-progress", { params }),
   dashboardStats: () =>
-    api.get<{ totalCourses: number; totalEnrolled: number; completionRate: number; avgQuizScore: number }>(
-      '/reports/dashboard'
-    ),
+    api.get<{
+      totalCourses: number;
+      totalEnrolled: number;
+      completionRate: number;
+      avgQuizScore: number;
+    }>("/reports/dashboard"),
 };
 
-// Audit
-export const auditApi = {
-  logs: (params?: Record<string, unknown>) =>
-    api.get<PaginatedResponse<AuditLog>>('/admin/audit-logs', { params }),
+// Course Requests
+export const courseRequestsApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get<PaginatedResponse<CourseRequest>>("/course-requests", { params }),
+  get: (id: string) => api.get<CourseRequest>(`/course-requests/${id}`),
+  submit: (courseId: string) =>
+    api.post<CourseRequest>("/course-requests", { courseId }),
+  approve: (id: string) =>
+    api.patch<CourseRequest>(`/course-requests/${id}/approve`, {}),
+  reject: (id: string, reason: string) =>
+    api.patch<CourseRequest>(`/course-requests/${id}/reject`, { reason }),
+  stats: () =>
+    api.get<{
+      pending: number;
+      approved: number;
+      rejected: number;
+      total: number;
+    }>("/course-requests/stats"),
 };
 
 // Health
 export const healthApi = {
-  check: () => api.get('/health'),
+  check: () => api.get("/health"),
 };

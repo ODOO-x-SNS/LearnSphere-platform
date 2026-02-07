@@ -1,6 +1,7 @@
 // Types for LearnSphere Admin Platform
 
-export type Role = 'ADMIN' | 'INSTRUCTOR' | 'LEARNER';
+export type Role = "ADMIN" | "INSTRUCTOR" | "LEARNER";
+export type CourseRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface User {
   id: string;
@@ -20,13 +21,14 @@ export interface Course {
   lessonsCount: number;
   totalDurationSec: number;
   published: boolean;
-  visibility: 'EVERYONE' | 'SIGNED_IN';
-  accessRule: 'OPEN' | 'INVITATION' | 'PAYMENT';
+  visibility: "EVERYONE" | "SIGNED_IN";
+  accessRule: "OPEN" | "INVITATION" | "PAYMENT";
   price?: number;
   websiteUrl?: string;
   responsibleId?: string;
   coverImageId?: string;
   coverImageUrl?: string;
+  coverImage?: { id: string; url: string; filename: string; mimeType: string };
   lessons: Lesson[];
   quizzes: Quiz[];
   createdAt: string;
@@ -37,7 +39,7 @@ export interface Lesson {
   id: string;
   courseId: string;
   title: string;
-  type: 'VIDEO' | 'DOCUMENT' | 'IMAGE' | 'QUIZ';
+  type: "VIDEO" | "DOCUMENT" | "IMAGE" | "QUIZ";
   externalUrl?: string;
   durationSec: number;
   allowDownload: boolean;
@@ -90,7 +92,7 @@ export interface Invitation {
   email: string;
   courseId: string;
   token: string;
-  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
+  status: "PENDING" | "ACCEPTED" | "EXPIRED";
   createdAt: string;
 }
 
@@ -103,7 +105,7 @@ export interface ReportRow {
   totalLessons: number;
   quizScore?: number;
   lastActivity: string;
-  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 }
 
 export interface ReportSummary {
@@ -113,15 +115,24 @@ export interface ReportSummary {
   avgQuizScore: number;
 }
 
-export interface AuditLog {
+export interface CourseRequest {
   id: string;
-  actorId: string;
-  actorName?: string;
-  action: string;
-  resourceType: string;
-  resourceId: string;
-  data: Record<string, unknown>;
+  status: CourseRequestStatus;
+  rejectionReason?: string;
   createdAt: string;
+  updatedAt?: string;
+  reviewedAt?: string;
+  instructor: Pick<User, "id" | "name" | "email" | "avatarUrl">;
+  reviewedBy?: Pick<User, "id" | "name" | "email">;
+  course: {
+    id: string;
+    title: string;
+    description?: string;
+    tags?: string[];
+    published: boolean;
+    coverImage?: FileMetadata;
+    _count: { lessons: number; quizzes: number };
+  };
 }
 
 export interface Review {
