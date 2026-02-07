@@ -138,3 +138,21 @@ export const courseRequestsApi = {
 export const healthApi = {
   check: () => api.get("/health"),
 };
+
+// Instructor Requests (admin approval)
+export const instructorRequestsApi = {
+  list: () =>
+    api.get<
+      Array<{
+        id: string;
+        name: string;
+        email: string;
+        status: string;
+        createdAt: string;
+      }>
+    >("/admin/instructor-requests"),
+  approve: (id: string) =>
+    api.post<{ message: string }>(`/admin/approve-instructor/${id}`),
+  reject: (id: string) =>
+    api.post<{ message: string }>(`/admin/reject-instructor/${id}`),
+};

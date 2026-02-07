@@ -11,6 +11,7 @@ import {
   HelpCircle,
   Users,
   CheckCircle2,
+  UserPlus,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useState } from "react";
@@ -38,6 +39,12 @@ const navItems: Array<{
     to: "/admin/course-requests",
     icon: CheckCircle2,
     label: "Course Requests",
+    roles: ["ADMIN"],
+  },
+  {
+    to: "/admin/instructor-requests",
+    icon: UserPlus,
+    label: "Instructor Requests",
     roles: ["ADMIN"],
   },
   { to: "/admin/settings", icon: Settings, label: "Settings" },

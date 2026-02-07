@@ -9,6 +9,7 @@ import { InstructorsPage } from "./pages/Instructors/InstructorsPage";
 import { ReportsPage } from "./pages/Reports/ReportsPage";
 import { SettingsPage } from "./pages/Settings/SettingsPage";
 import { CourseRequestsPage } from "./pages/CourseRequests/CourseRequestsPage";
+import { InstructorRequestsPage } from "./pages/InstructorRequests/InstructorRequestsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="instructors" element={<InstructorsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="course-requests" element={<CourseRequestsPage />} />
+            <Route path="instructor-requests" element={<InstructorRequestsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />

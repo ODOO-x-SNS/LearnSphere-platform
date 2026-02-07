@@ -8,6 +8,7 @@ import {
   usersApi,
   instructorsApi,
   courseRequestsApi,
+  instructorRequestsApi,
 } from "../services/api";
 import { useAuthStore } from "../store/auth";
 import type { Course, Lesson, Quiz } from "../types";
@@ -337,6 +338,38 @@ export function useRejectCourseRequest() {
         queryKey: ["course-requests", "stats"],
         exact: true,
       });
+    },
+  });
+}
+
+// ── Instructor Signup Requests ──
+export function useInstructorRequests() {
+  return useQuery({
+    queryKey: ["instructor-requests"],
+    queryFn: () => instructorRequestsApi.list().then((r) => r.data),
+    staleTime: 10_000,
+  });
+}
+
+export function useApproveInstructor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      instructorRequestsApi.approve(id).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["instructor-requests"] });
+      qc.invalidateQueries({ queryKey: ["instructors"] });
+    },
+  });
+}
+
+export function useRejectInstructor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      instructorRequestsApi.reject(id).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["instructor-requests"] });
     },
   });
 }
