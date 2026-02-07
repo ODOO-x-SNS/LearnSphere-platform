@@ -4,7 +4,7 @@ import {
   BookOpen, Users, TrendingUp, Award, ArrowUpRight,
   BarChart3, Clock,
 } from 'lucide-react';
-import { useCourses, useCourseProgress } from '../../hooks/useApi';
+import { useCourses, useDashboardStats } from '../../hooks/useApi';
 import { useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 
@@ -18,16 +18,13 @@ const statCards = [
 export function DashboardPage() {
   const navigate = useNavigate();
   const { data: courseData } = useCourses({ limit: 5 });
-  const { data: reportData } = useCourseProgress({});
-
-  const courseCount = courseData?.data?.length;
-  const hasMoreCourses = !!courseData?.paging?.nextCursor;
+  const { data: dashboardData } = useDashboardStats();
 
   const stats: Record<string, string> = {
-    courses: courseCount != null ? (hasMoreCourses ? `${courseCount}+` : String(courseCount)) : '—',
-    learners: reportData?.summary?.totalEnrolled?.toString() || '—',
-    completion: reportData?.summary?.completionRate != null ? `${Math.round(reportData.summary.completionRate)}%` : '—',
-    quizScore: reportData?.summary?.avgQuizScore != null ? `${Math.round(reportData.summary.avgQuizScore)}%` : '—',
+    courses: dashboardData?.totalCourses != null ? String(dashboardData.totalCourses) : '—',
+    learners: dashboardData?.totalEnrolled != null ? String(dashboardData.totalEnrolled) : '—',
+    completion: dashboardData?.completionRate != null ? `${Math.round(dashboardData.completionRate)}%` : '—',
+    quizScore: dashboardData?.avgQuizScore != null ? `${Math.round(dashboardData.avgQuizScore)}%` : '—',
   };
 
   return (

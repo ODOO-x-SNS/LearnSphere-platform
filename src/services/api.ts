@@ -13,10 +13,20 @@ export const authApi = {
   refresh: () => api.post('/auth/refresh'),
 };
 
+// Users
+export const usersApi = {
+  updateProfile: (data: { name?: string; bio?: string; avatarUrl?: string }) =>
+    api.patch<User>('/users/me', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.patch<{ message: string }>('/users/me/password', data),
+};
+
 // Courses
 export const coursesApi = {
   list: (params?: Record<string, unknown>) =>
     api.get<PaginatedResponse<Course>>('/courses', { params }),
+  listBackoffice: (params?: Record<string, unknown>) =>
+    api.get<PaginatedResponse<Course>>('/courses/backoffice', { params }),
   get: (id: string) => api.get<Course>(`/courses/${id}`),
   create: (data: { title: string; description?: string; tags?: string[] }) =>
     api.post<Course>('/courses', data),
@@ -62,6 +72,10 @@ export const reportsApi = {
   courseProgress: (params?: Record<string, unknown>) =>
     api.get<{ summary: ReportSummary; rows: ReportRow[]; paging: { nextCursor?: string; limit: number } }>(
       '/reports/course-progress', { params }
+    ),
+  dashboardStats: () =>
+    api.get<{ totalCourses: number; totalEnrolled: number; completionRate: number; avgQuizScore: number }>(
+      '/reports/dashboard'
     ),
 };
 

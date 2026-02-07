@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Search, LayoutGrid, List, Filter, BookOpen,
@@ -55,6 +55,7 @@ export function CoursesPage() {
       onSuccess: () => {
         toast('success', 'Course deleted');
         setDeleteConfirm(null);
+        setMenuOpen(null);
       },
       onError: () => toast('error', 'Failed to delete course'),
     });
@@ -145,7 +146,7 @@ export function CoursesPage() {
                 menuOpen={menuOpen === course.id}
                 onToggleMenu={() => setMenuOpen(menuOpen === course.id ? null : course.id)}
                 onEdit={() => navigate(`/admin/courses/${course.id}/edit`)}
-                onDelete={() => setDeleteConfirm(course.id)}
+                onDelete={() => { setMenuOpen(null); setDeleteConfirm(course.id); }}
               />
             ))}
           </div>
@@ -207,6 +208,19 @@ function CourseCard({ course, index, menuOpen, onToggleMenu, onEdit, onDelete }:
   onDelete: () => void;
 }) {
   const publish = useTogglePublish(course.id);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onToggleMenu();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen, onToggleMenu]);
 
   return (
     <div className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
@@ -224,33 +238,34 @@ function CourseCard({ course, index, menuOpen, onToggleMenu, onEdit, onDelete }:
               {course.published ? 'Published' : 'Draft'}
             </Badge>
           </div>
-          {/* Menu */}
-          <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="relative">
-              <button
-                onClick={(e) => { e.stopPropagation(); onToggleMenu(); }}
-                className="p-1.5 bg-white/90 backdrop-blur rounded-lg shadow-sm hover:bg-white transition-all"
+        </div>
+
+        {/* Menu – positioned outside overflow-hidden cover so dropdown is not clipped */}
+        <div ref={menuRef} className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+          <div className="relative">
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleMenu(); }}
+              className="p-1.5 bg-white/90 backdrop-blur rounded-lg shadow-sm hover:bg-white transition-all"
+            >
+              <MoreHorizontal className="h-4 w-4 text-text-secondary" />
+            </button>
+            {menuOpen && (
+              <div
+                className="absolute top-full left-0 mt-1 bg-white rounded-2xl shadow-xl border border-border/80 py-1.5 w-44 z-50 ring-1 ring-black/5"
+                onClick={(e) => e.stopPropagation()}
               >
-                <MoreHorizontal className="h-4 w-4 text-text-secondary" />
-              </button>
-              {menuOpen && (
-                <div
-                  className="absolute top-full left-0 mt-1 bg-white rounded-2xl shadow-xl border border-border/80 py-1.5 w-44 z-10 ring-1 ring-black/5"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MenuOption icon={<Edit3 className="h-4 w-4" />} label="Edit" onClick={onEdit} />
-                  <MenuOption icon={<Eye className="h-4 w-4" />} label="Preview" onClick={() => window.open(`/courses/${course.slug}`, '_blank')} />
-                  <MenuOption
-                    icon={<Globe className="h-4 w-4" />}
-                    label={course.published ? 'Unpublish' : 'Publish'}
-                    onClick={() => publish.mutate(!course.published)}
-                  />
-                  <MenuOption icon={<Send className="h-4 w-4" />} label="Invite" onClick={onEdit} />
-                  <div className="border-t border-border my-1" />
-                  <MenuOption icon={<Trash2 className="h-4 w-4" />} label="Delete" onClick={onDelete} danger />
-                </div>
-              )}
-            </div>
+                <MenuOption icon={<Edit3 className="h-4 w-4" />} label="Edit" onClick={onEdit} />
+                <MenuOption icon={<Eye className="h-4 w-4" />} label="Preview" onClick={() => window.open(`/courses/${course.slug}`, '_blank')} />
+                <MenuOption
+                  icon={<Globe className="h-4 w-4" />}
+                  label={course.published ? 'Unpublish' : 'Publish'}
+                  onClick={() => publish.mutate(!course.published)}
+                />
+                <MenuOption icon={<Send className="h-4 w-4" />} label="Invite" onClick={onEdit} />
+                <div className="border-t border-border my-1" />
+                <MenuOption icon={<Trash2 className="h-4 w-4" />} label="Delete" onClick={onDelete} danger />
+              </div>
+            )}
           </div>
         </div>
 

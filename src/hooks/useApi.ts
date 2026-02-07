@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi, coursesApi, lessonsApi, quizzesApi, reportsApi, auditApi } from '../services/api';
+import { authApi, coursesApi, lessonsApi, quizzesApi, reportsApi, auditApi, usersApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
 import type { Course, Lesson, Quiz } from '../types';
 
@@ -29,11 +29,32 @@ export function useLogin() {
   });
 }
 
+// ── Users ──
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  const setUser = useAuthStore((s) => s.setUser);
+  return useMutation({
+    mutationFn: (data: { name?: string; bio?: string; avatarUrl?: string }) =>
+      usersApi.updateProfile(data).then((r) => r.data),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      qc.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      usersApi.changePassword(data).then((r) => r.data),
+  });
+}
+
 // ── Courses ──
 export function useCourses(params?: Record<string, unknown>) {
   return useQuery({
     queryKey: ['courses', params],
-    queryFn: () => coursesApi.list(params).then((r) => r.data),
+    queryFn: () => coursesApi.listBackoffice(params).then((r) => r.data),
     staleTime: 10_000,
     placeholderData: (prev) => prev,
   });
@@ -195,6 +216,15 @@ export function useCourseProgress(params?: Record<string, unknown>) {
   return useQuery({
     queryKey: ['reports', 'course-progress', params],
     queryFn: () => reportsApi.courseProgress(params).then((r) => r.data),
+    staleTime: 30_000,
+    enabled: !!params?.courseId,
+  });
+}
+
+export function useDashboardStats() {
+  return useQuery({
+    queryKey: ['reports', 'dashboard'],
+    queryFn: () => reportsApi.dashboardStats().then((r) => r.data),
     staleTime: 30_000,
   });
 }

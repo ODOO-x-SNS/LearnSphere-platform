@@ -1,10 +1,50 @@
 import { useState } from 'react';
-import { Plus, GripVertical, Video, FileText, Image, HelpCircle, Trash2, Edit3, Clock, Download } from 'lucide-react';
-import { Button, Card, Modal, Input, Select, Badge, EmptyState } from '../../../components/ui';
+import { Plus, GripVertical, Video, FileText, Image, HelpCircle, Trash2, Edit3, Clock, Download, Eye, Loader2 } from 'lucide-react';
+import { Button, Card, Modal, Input, Select, Badge, EmptyState, MediaPreview } from '../../../components/ui';
 import { toast } from '../../../components/ui/Toast';
 import { useCreateLesson, useUpdateLesson, useDeleteLesson } from '../../../hooks/useApi';
 import type { Course, Lesson } from '../../../types';
 import { clsx } from 'clsx';
+
+const DRIVE_FILE_RE = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
+const DRIVE_OPEN_RE = /drive\.google\.com\/(?:open\?id=|uc\?id=)([a-zA-Z0-9_-]+)/;
+
+/** Convert any Google Drive URL to a direct-download link */
+function toDownloadUrl(url: string): string {
+  const m = url.match(DRIVE_FILE_RE) || url.match(DRIVE_OPEN_RE);
+  if (m?.[1]) return `https://drive.google.com/uc?export=download&id=${m[1]}`;
+  return url;
+}
+
+/** Fetch the file as a blob and trigger a real browser download */
+async function triggerDownload(url: string, filename?: string) {
+  const downloadUrl = toDownloadUrl(url);
+  try {
+    const res = await fetch(downloadUrl, { mode: 'cors' });
+    if (!res.ok) throw new Error('fetch failed');
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename || guessFilename(url);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    // CORS blocked or network error → fall back to opening the download URL directly
+    window.open(downloadUrl, '_blank');
+  }
+}
+
+function guessFilename(url: string): string {
+  try {
+    const path = new URL(url).pathname;
+    const last = path.split('/').filter(Boolean).pop();
+    if (last && last.includes('.')) return decodeURIComponent(last);
+  } catch { /* ignore */ }
+  return 'download';
+}
 
 const typeIcons: Record<string, React.ReactNode> = {
   VIDEO: <Video className="h-4 w-4" />,
@@ -24,6 +64,7 @@ export function ContentTab({ course }: { course: Course }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [previewLesson, setPreviewLesson] = useState<Lesson | null>(null);
   const [form, setForm] = useState({ title: '', type: 'VIDEO', externalUrl: '', durationSec: 0, description: '', allowDownload: false });
 
   const createLesson = useCreateLesson(course.id);
@@ -53,15 +94,18 @@ export function ContentTab({ course }: { course: Course }) {
 
   const handleSave = () => {
     if (!form.title.trim()) return;
-    const payload = {
+    const payload: Record<string, unknown> = {
       title: form.title,
       type: form.type as Lesson['type'],
       externalUrl: form.externalUrl || undefined,
-      durationSec: Number(form.durationSec),
+      durationSec: Number(form.durationSec) || 0,
       description: form.description || undefined,
       allowDownload: form.allowDownload,
-      sortOrder: editingLesson ? editingLesson.sortOrder : lessons.length,
     };
+    // Only send sortOrder on update (backend auto-assigns on create)
+    if (editingLesson) {
+      payload.sortOrder = editingLesson.sortOrder;
+    }
 
     if (editingLesson) {
       updateLesson.mutate(
@@ -122,12 +166,43 @@ export function ContentTab({ course }: { course: Course }) {
                     {lesson.durationSec > 0 && (
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.round(lesson.durationSec / 60)}m</span>
                     )}
-                    {lesson.allowDownload && (
+                    {lesson.allowDownload && (lesson.type === 'DOCUMENT' || lesson.type === 'IMAGE') && (
                       <span className="flex items-center gap-1"><Download className="h-3 w-3" />Downloadable</span>
                     )}
                   </div>
+                  {/* Inline compact media preview */}
+                  {lesson.externalUrl && (
+                    <MediaPreview url={lesson.externalUrl} lessonType={lesson.type} compact />
+                  )}
+                  {lesson.mediaFileUrl && !lesson.externalUrl && (
+                    <MediaPreview url={lesson.mediaFileUrl} lessonType={lesson.type} compact />
+                  )}
+                  {lesson.description && (
+                    <p className="text-xs text-text-muted mt-1 line-clamp-2">{lesson.description}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {(lesson.externalUrl || lesson.mediaFileUrl) && (
+                    <button
+                      onClick={() => setPreviewLesson(lesson)}
+                      title="Preview media"
+                      className="p-2 rounded-lg text-text-muted hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  )}
+                  {lesson.allowDownload && (lesson.type === 'DOCUMENT' || lesson.type === 'IMAGE') && (lesson.externalUrl || lesson.mediaFileUrl) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerDownload(lesson.mediaFileUrl || lesson.externalUrl!, lesson.title);
+                      }}
+                      title="Download file"
+                      className="p-2 rounded-lg text-text-muted hover:text-success-600 hover:bg-success-50 transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     onClick={() => openEdit(lesson)}
                     className="p-2 rounded-lg text-text-muted hover:text-primary-600 hover:bg-primary-50 transition-colors"
@@ -156,7 +231,15 @@ export function ContentTab({ course }: { course: Course }) {
           <Select
             label="Type"
             value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            onChange={(e) => {
+              const newType = e.target.value;
+              setForm({
+                ...form,
+                type: newType,
+                // Only DOCUMENT and IMAGE support download
+                allowDownload: (newType === 'DOCUMENT' || newType === 'IMAGE') ? form.allowDownload : false,
+              });
+            }}
             options={[
               { value: 'VIDEO', label: 'Video' },
               { value: 'DOCUMENT', label: 'Document' },
@@ -170,14 +253,18 @@ export function ContentTab({ course }: { course: Course }) {
             value={String(form.durationSec)}
             onChange={(e) => setForm({ ...form, durationSec: parseInt(e.target.value) || 0 })}
           />
-          {form.type === 'VIDEO' && (
+          <div className="col-span-2">
+            <Input
+              label="External URL"
+              value={form.externalUrl}
+              onChange={(e) => setForm({ ...form, externalUrl: e.target.value })}
+              placeholder="https://youtube.com/watch?v=... or Google Drive link, etc."
+            />
+          </div>
+          {form.externalUrl && (
             <div className="col-span-2">
-              <Input
-                label="External URL"
-                value={form.externalUrl}
-                onChange={(e) => setForm({ ...form, externalUrl: e.target.value })}
-                placeholder="https://youtube.com/watch?v=..."
-              />
+              <label className="block text-[13px] font-semibold text-text-secondary mb-1.5">Preview</label>
+              <MediaPreview url={form.externalUrl} lessonType={form.type} />
             </div>
           )}
           <div className="col-span-2">
@@ -189,17 +276,19 @@ export function ContentTab({ course }: { course: Course }) {
               className="w-full h-24 px-3.5 py-2.5 rounded-xl border border-border text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 resize-none hover:border-gray-300 transition-all"
             />
           </div>
-          <div className="col-span-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.allowDownload}
-                onChange={(e) => setForm({ ...form, allowDownload: e.target.checked })}
-                className="rounded border-border"
-              />
-              <span className="text-sm text-text-secondary">Allow file download</span>
-            </label>
-          </div>
+          {(form.type === 'DOCUMENT' || form.type === 'IMAGE') && (
+            <div className="col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.allowDownload}
+                  onChange={(e) => setForm({ ...form, allowDownload: e.target.checked })}
+                  className="rounded border-border"
+                />
+                <span className="text-sm text-text-secondary">Allow file download</span>
+              </label>
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
           <Button variant="secondary" onClick={() => setModalOpen(false)}>Cancel</Button>
@@ -218,6 +307,37 @@ export function ContentTab({ course }: { course: Course }) {
             Delete
           </Button>
         </div>
+      </Modal>
+
+      {/* Media Preview Modal */}
+      <Modal open={!!previewLesson} onClose={() => setPreviewLesson(null)} title={previewLesson?.title ?? 'Preview'} size="xl">
+        {previewLesson && (
+          <div className="space-y-3">
+            {previewLesson.externalUrl && (
+              <MediaPreview url={previewLesson.externalUrl} lessonType={previewLesson.type} />
+            )}
+            {previewLesson.mediaFileUrl && !previewLesson.externalUrl && (
+              <MediaPreview url={previewLesson.mediaFileUrl} lessonType={previewLesson.type} />
+            )}
+            {previewLesson.description && (
+              <p className="text-sm text-text-secondary mt-3">{previewLesson.description}</p>
+            )}
+            {previewLesson.allowDownload && (previewLesson.type === 'DOCUMENT' || previewLesson.type === 'IMAGE') && (previewLesson.externalUrl || previewLesson.mediaFileUrl) && (
+              <div className="pt-3 border-t border-border">
+                <button
+                  onClick={() => triggerDownload(
+                    previewLesson.mediaFileUrl || previewLesson.externalUrl!,
+                    previewLesson.title
+                  )}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-success-50 text-success-700 text-sm font-medium hover:bg-success-100 transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  Download file
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );

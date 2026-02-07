@@ -9,3 +9,4 @@ export { Tabs } from './Tabs';
 export { ToastContainer, toast } from './Toast';
 export { Skeleton, CardSkeleton, TableSkeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
+export { MediaPreview } from './MediaPreview';

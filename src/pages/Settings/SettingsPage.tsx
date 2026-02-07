@@ -8,6 +8,7 @@ import { Card, Button, Input, Tabs, Badge } from '../../components/ui';
 import { toast } from '../../components/ui/Toast';
 import { useAuthStore } from '../../store/auth';
 import { healthApi } from '../../services/api';
+import { useUpdateProfile, useChangePassword } from '../../hooks/useApi';
 
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user);
@@ -54,6 +55,24 @@ function ProfileTab() {
   const user = useAuthStore((s) => s.user);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
+  const updateProfile = useUpdateProfile();
+
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast('error', 'Name cannot be empty');
+      return;
+    }
+    updateProfile.mutate(
+      { name: name.trim() },
+      {
+        onSuccess: () => toast('success', 'Profile updated'),
+        onError: (err: any) => {
+          const msg = err?.response?.data?.message || 'Failed to update profile';
+          toast('error', msg);
+        },
+      }
+    );
+  };
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -70,10 +89,14 @@ function ProfileTab() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Input label="Full Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label="Email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
+          <Input label="Email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" disabled />
         </div>
         <div className="flex justify-end mt-6">
-          <Button icon={<Save className="h-4 w-4" />} onClick={() => toast('success', 'Profile updated')}>
+          <Button
+            icon={<Save className="h-4 w-4" />}
+            onClick={handleSave}
+            loading={updateProfile.isPending}
+          >
             Save Changes
           </Button>
         </div>
@@ -83,6 +106,41 @@ function ProfileTab() {
 }
 
 function SecurityTab() {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const changePassword = useChangePassword();
+
+  const handleChangePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast('error', 'All password fields are required');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast('error', 'New password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast('error', 'New passwords do not match');
+      return;
+    }
+    changePassword.mutate(
+      { currentPassword, newPassword },
+      {
+        onSuccess: () => {
+          toast('success', 'Password updated');
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+        },
+        onError: (err: any) => {
+          const msg = err?.response?.data?.message || 'Failed to update password';
+          toast('error', msg);
+        },
+      }
+    );
+  };
+
   return (
     <div className="max-w-2xl space-y-6">
       <Card>
@@ -90,12 +148,12 @@ function SecurityTab() {
           <Key className="h-5 w-5 text-primary-500" /> Change Password
         </h3>
         <div className="space-y-4">
-          <Input label="Current Password" type="password" placeholder="Enter current password" />
-          <Input label="New Password" type="password" placeholder="Enter new password" />
-          <Input label="Confirm Password" type="password" placeholder="Confirm new password" />
+          <Input label="Current Password" type="password" placeholder="Enter current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+          <Input label="New Password" type="password" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+          <Input label="Confirm Password" type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
         </div>
         <div className="flex justify-end mt-6">
-          <Button onClick={() => toast('success', 'Password updated')}>Update Password</Button>
+          <Button onClick={handleChangePassword} loading={changePassword.isPending}>Update Password</Button>
         </div>
       </Card>
 

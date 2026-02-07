@@ -7,11 +7,13 @@ import { clsx } from 'clsx';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/auth';
 
-const navItems = [
+import type { Role } from '../../types';
+
+const navItems: Array<{ to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; roles?: Role[] }> = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/courses', icon: BookOpen, label: 'Courses' },
   { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
-  { to: '/admin/audit', icon: Shield, label: 'Audit Logs' },
+  { to: '/admin/audit', icon: Shield, label: 'Audit Logs', roles: ['ADMIN'] },
   { to: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -47,7 +49,9 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => (
+        {navItems
+          .filter((item) => !item.roles || (user?.role && item.roles.includes(user.role as Role)))
+          .map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
