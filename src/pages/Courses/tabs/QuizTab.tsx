@@ -7,6 +7,7 @@ import {
   CheckCircle,
   XCircle,
   Award,
+  RotateCcw,
 } from "lucide-react";
 import {
   Button,
@@ -34,7 +35,11 @@ export function QuizTab({ course }: { course: Course }) {
 
   // Quiz builder state
   const [quizTitle, setQuizTitle] = useState("");
-  const [pointsFirst, setPointsFirst] = useState(100);
+  const [quizDescription, setQuizDescription] = useState("");
+  const [pointsFirst, setPointsFirst] = useState(10);
+  const [pointsSecond, setPointsSecond] = useState(7);
+  const [pointsThird, setPointsThird] = useState(4);
+  const [pointsFourthPlus, setPointsFourthPlus] = useState(1);
   const [questions, setQuestions] = useState<
     Array<{
       text: string;
@@ -59,7 +64,11 @@ export function QuizTab({ course }: { course: Course }) {
 
   const resetForm = () => {
     setQuizTitle("");
-    setPointsFirst(100);
+    setQuizDescription("");
+    setPointsFirst(10);
+    setPointsSecond(7);
+    setPointsThird(4);
+    setPointsFourthPlus(1);
     setQuestions([
       {
         text: "",
@@ -141,7 +150,11 @@ export function QuizTab({ course }: { course: Course }) {
           id: editingId,
           data: {
             title: quizTitle,
+            description: quizDescription || undefined,
             pointsFirstTry: pointsFirst,
+            pointsSecondTry: pointsSecond,
+            pointsThirdTry: pointsThird,
+            pointsFourthPlus: pointsFourthPlus,
             questions: questions as unknown as Question[],
           },
         },
@@ -159,7 +172,11 @@ export function QuizTab({ course }: { course: Course }) {
       createQuiz.mutate(
         {
           title: quizTitle,
+          description: quizDescription || undefined,
           pointsFirstTry: pointsFirst,
+          pointsSecondTry: pointsSecond,
+          pointsThirdTry: pointsThird,
+          pointsFourthPlus: pointsFourthPlus,
           questions: questions as unknown as Question[],
         },
         {
@@ -238,7 +255,11 @@ export function QuizTab({ course }: { course: Course }) {
                     onClick={() => {
                       setEditingId(quiz.id);
                       setQuizTitle(quiz.title);
-                      setPointsFirst(quiz.pointsFirstTry || 100);
+                      setQuizDescription(quiz.description || "");
+                      setPointsFirst(quiz.pointsFirstTry || 10);
+                      setPointsSecond(quiz.pointsSecondTry || 7);
+                      setPointsThird(quiz.pointsThirdTry || 4);
+                      setPointsFourthPlus(quiz.pointsFourthPlus || 1);
                       setQuestions(
                         (quiz.questions || []).map((q) => ({
                           text: q.text,
@@ -266,7 +287,11 @@ export function QuizTab({ course }: { course: Course }) {
               <div className="flex items-center gap-3 mt-4 pt-3 border-t border-border">
                 <div className="flex items-center gap-1.5 text-xs text-text-muted">
                   <Award className="h-3.5 w-3.5" />
-                  {quiz.pointsFirstTry} pts
+                  {quiz.pointsFirstTry}/{quiz.pointsSecondTry}/{quiz.pointsThirdTry}/{quiz.pointsFourthPlus} pts
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Multi-attempt
                 </div>
                 <Badge variant="primary">{quiz.questions?.length || 0}Q</Badge>
               </div>
@@ -295,11 +320,48 @@ export function QuizTab({ course }: { course: Course }) {
               placeholder="e.g., Module 1 Assessment"
             />
             <Input
-              label="Points (First Try)"
-              type="number"
-              value={String(pointsFirst)}
-              onChange={(e) => setPointsFirst(parseInt(e.target.value) || 0)}
+              label="Description (optional)"
+              value={quizDescription}
+              onChange={(e) => setQuizDescription(e.target.value)}
+              placeholder="Brief quiz description"
             />
+          </div>
+
+          {/* Reward Points Configuration */}
+          <div>
+            <h4 className="font-medium text-text-primary mb-2 flex items-center gap-2">
+              <Award className="h-4 w-4 text-accent-600" />
+              Reward Points per Attempt
+            </h4>
+            <p className="text-xs text-text-muted mb-3">
+              Earlier attempts earn more points — encouraging mastery.
+            </p>
+            <div className="grid grid-cols-4 gap-3">
+              <Input
+                label="1st Attempt"
+                type="number"
+                value={String(pointsFirst)}
+                onChange={(e) => setPointsFirst(parseInt(e.target.value) || 0)}
+              />
+              <Input
+                label="2nd Attempt"
+                type="number"
+                value={String(pointsSecond)}
+                onChange={(e) => setPointsSecond(parseInt(e.target.value) || 0)}
+              />
+              <Input
+                label="3rd Attempt"
+                type="number"
+                value={String(pointsThird)}
+                onChange={(e) => setPointsThird(parseInt(e.target.value) || 0)}
+              />
+              <Input
+                label="4th+ Attempt"
+                type="number"
+                value={String(pointsFourthPlus)}
+                onChange={(e) => setPointsFourthPlus(parseInt(e.target.value) || 0)}
+              />
+            </div>
           </div>
 
           {/* Questions */}

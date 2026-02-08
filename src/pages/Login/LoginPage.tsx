@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { GraduationCap, Eye, EyeOff, ArrowRight, Mail, ArrowLeft } from 'lucide-react';
 import { Button, Input } from '../../components/ui';
 import { useLogin } from '../../hooks/useApi';
 import { toast, ToastContainer } from '../../components/ui/Toast';
+import { authApi } from '../../services/api';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
   const navigate = useNavigate();
   const login = useLogin();
 
@@ -25,6 +30,20 @@ export function LoginPage() {
         },
       }
     );
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+    try {
+      await authApi.forgotPassword(forgotEmail);
+      setForgotSent(true);
+    } catch {
+      toast('error', 'Something went wrong. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   return (
@@ -78,7 +97,7 @@ export function LoginPage() {
                 <input type="checkbox" className="rounded border-border" />
                 Remember me
               </label>
-              <button type="button" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+              <button type="button" onClick={() => { setShowForgot(true); setForgotEmail(''); setForgotSent(false); }} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
                 Forgot password?
               </button>
             </div>
@@ -139,6 +158,55 @@ export function LoginPage() {
           </div>
         </div>
       </div>
+      {/* Forgot Password Modal */}
+      {showForgot && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+            {!forgotSent ? (
+              <>
+                <button
+                  onClick={() => setShowForgot(false)}
+                  className="flex items-center gap-1 text-sm text-text-muted hover:text-text-primary mb-6 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back to sign in
+                </button>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-600 flex items-center justify-center mb-5">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-text-primary mb-1.5">Reset your password</h2>
+                <p className="text-sm text-text-muted mb-6">
+                  Enter the email address associated with your account and we'll send you a link to reset your password.
+                </p>
+                <form onSubmit={handleForgotSubmit} className="space-y-5">
+                  <Input
+                    label="Email address"
+                    type="email"
+                    placeholder="admin@learnsphere.io"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                  />
+                  <Button type="submit" className="w-full" size="lg" loading={forgotLoading}>
+                    Send reset link
+                  </Button>
+                </form>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+                  <Mail className="h-7 w-7 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-text-primary mb-2">Check your email</h2>
+                <p className="text-sm text-text-muted mb-6">
+                  If an account exists for <strong>{forgotEmail}</strong>, we've sent a password reset link. The link expires in 1 hour.
+                </p>
+                <Button onClick={() => setShowForgot(false)} className="w-full" size="lg" variant="outline">
+                  Back to sign in
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <ToastContainer />
     </div>
   );

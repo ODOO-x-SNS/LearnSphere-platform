@@ -1,9 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, DollarSign, Users, Lock, Globe } from 'lucide-react';
-import { Button, Input, Select } from '../../../components/ui';
-import { toast } from '../../../components/ui/Toast';
-import { clsx } from 'clsx';
-import type { Course } from '../../../types';
+import { useState, useEffect } from "react";
+import {
+  Save,
+  Eye,
+  EyeOff,
+  DollarSign,
+  Users,
+  Lock,
+  Globe,
+  ListOrdered,
+} from "lucide-react";
+import { Button, Input, Select } from "../../../components/ui";
+import { toast } from "../../../components/ui/Toast";
+import { clsx } from "clsx";
+import type { Course } from "../../../types";
 
 interface Props {
   course: Course;
@@ -12,37 +21,41 @@ interface Props {
 
 const accessRules = [
   {
-    value: 'OPEN' as const,
-    label: 'Open Access',
-    description: 'Anyone can enroll without restrictions',
+    value: "OPEN" as const,
+    label: "Open Access",
+    description: "Anyone can enroll without restrictions",
     icon: Globe,
-    color: 'text-success-600 bg-success-50 border-success-200',
+    color: "text-success-600 bg-success-50 border-success-200",
   },
   {
-    value: 'PAYMENT' as const,
-    label: 'Paid Access',
-    description: 'Learners must pay to enroll',
+    value: "PAYMENT" as const,
+    label: "Paid Access",
+    description: "Learners must pay to enroll",
     icon: DollarSign,
-    color: 'text-warning-600 bg-warning-50 border-warning-200',
+    color: "text-warning-600 bg-warning-50 border-warning-200",
   },
   {
-    value: 'INVITATION' as const,
-    label: 'Invitation Only',
-    description: 'Only invited learners can access',
+    value: "INVITATION" as const,
+    label: "Invitation Only",
+    description: "Only invited learners can access",
     icon: Lock,
-    color: 'text-accent-600 bg-accent-50 border-accent-200',
+    color: "text-accent-600 bg-accent-50 border-accent-200",
   },
 ];
 
 export function OptionsTab({ course, onSave }: Props) {
-  const [visibility, setVisibility] = useState(course.visibility || 'EVERYONE');
-  const [accessRule, setAccessRule] = useState(course.accessRule || 'OPEN');
-  const [price, setPrice] = useState(course.price?.toString() || '');
+  const [visibility, setVisibility] = useState(course.visibility || "EVERYONE");
+  const [accessRule, setAccessRule] = useState(course.accessRule || "OPEN");
+  const [price, setPrice] = useState(course.price?.toString() || "");
+  const [sequentialProgress, setSequentialProgress] = useState(
+    course.sequentialProgress ?? false,
+  );
 
   useEffect(() => {
-    setVisibility(course.visibility || 'EVERYONE');
-    setAccessRule(course.accessRule || 'OPEN');
-    setPrice(course.price?.toString() || '');
+    setVisibility(course.visibility || "EVERYONE");
+    setAccessRule(course.accessRule || "OPEN");
+    setPrice(course.price?.toString() || "");
+    setSequentialProgress(course.sequentialProgress ?? false);
   }, [course]);
 
   const handleSave = async () => {
@@ -50,37 +63,51 @@ export function OptionsTab({ course, onSave }: Props) {
       await onSave({
         visibility,
         accessRule,
-        price: accessRule === 'PAYMENT' ? parseFloat(price) || 0 : undefined,
+        price: accessRule === "PAYMENT" ? parseFloat(price) || 0 : undefined,
+        sequentialProgress,
       });
-      toast('success', 'Options saved');
+      toast("success", "Options saved");
     } catch {
-      toast('error', 'Failed to save options');
+      toast("error", "Failed to save options");
     }
   };
 
   return (
     <div className="max-w-2xl space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-text-primary mb-1">Course Options</h3>
-        <p className="text-sm text-text-muted">Configure visibility, access rules, and pricing</p>
+        <h3 className="text-lg font-semibold text-text-primary mb-1">
+          Course Options
+        </h3>
+        <p className="text-sm text-text-muted">
+          Configure visibility, access rules, and pricing
+        </p>
       </div>
 
       {/* Visibility */}
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-text-secondary">Visibility</label>
+        <label className="block text-sm font-medium text-text-secondary">
+          Visibility
+        </label>
         <Select
           value={visibility}
-          onChange={(e) => setVisibility(e.target.value as Course['visibility'])}
+          onChange={(e) =>
+            setVisibility(e.target.value as Course["visibility"])
+          }
           options={[
-            { value: 'EVERYONE', label: 'Everyone — Visible to all users' },
-            { value: 'SIGNED_IN', label: 'Signed In — Only visible to authenticated users' },
+            { value: "EVERYONE", label: "Everyone — Visible to all users" },
+            {
+              value: "SIGNED_IN",
+              label: "Signed In — Only visible to authenticated users",
+            },
           ]}
         />
       </div>
 
       {/* Access Rule */}
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-text-secondary">Access Rule</label>
+        <label className="block text-sm font-medium text-text-secondary">
+          Access Rule
+        </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {accessRules.map((rule) => (
             <button
@@ -88,21 +115,25 @@ export function OptionsTab({ course, onSave }: Props) {
               type="button"
               onClick={() => setAccessRule(rule.value)}
               className={clsx(
-                'relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all text-center',
+                "relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all text-center",
                 accessRule === rule.value
-                  ? rule.color + ' shadow-sm'
-                  : 'border-border bg-white hover:border-gray-300'
+                  ? rule.color + " shadow-sm"
+                  : "border-border bg-white hover:border-gray-300",
               )}
             >
-              <div className={clsx(
-                'w-11 h-11 rounded-xl flex items-center justify-center',
-                accessRule === rule.value ? 'bg-white/80' : 'bg-surface-dim'
-              )}>
+              <div
+                className={clsx(
+                  "w-11 h-11 rounded-xl flex items-center justify-center",
+                  accessRule === rule.value ? "bg-white/80" : "bg-surface-dim",
+                )}
+              >
                 <rule.icon className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-sm font-semibold">{rule.label}</p>
-                <p className="text-xs text-text-muted mt-1 leading-relaxed">{rule.description}</p>
+                <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                  {rule.description}
+                </p>
               </div>
               {accessRule === rule.value && (
                 <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-current" />
@@ -113,9 +144,11 @@ export function OptionsTab({ course, onSave }: Props) {
       </div>
 
       {/* Price (conditional) */}
-      {accessRule === 'PAYMENT' && (
+      {accessRule === "PAYMENT" && (
         <div className="animate-fade-in space-y-3">
-          <label className="block text-sm font-medium text-text-secondary">Price</label>
+          <label className="block text-sm font-medium text-text-secondary">
+            Price
+          </label>
           <div className="relative max-w-xs">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
             <input
@@ -128,9 +161,57 @@ export function OptionsTab({ course, onSave }: Props) {
               className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
             />
           </div>
-          <p className="text-xs text-text-muted">Set the enrollment fee in USD</p>
+          <p className="text-xs text-text-muted">
+            Set the enrollment fee in USD
+          </p>
         </div>
       )}
+
+      {/* Sequential Progress */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-text-secondary">
+          Learning Flow
+        </label>
+        <button
+          type="button"
+          onClick={() => setSequentialProgress(!sequentialProgress)}
+          className={clsx(
+            "flex items-center gap-4 w-full p-5 rounded-xl border-2 transition-all text-left",
+            sequentialProgress
+              ? "border-primary-300 bg-primary-50 shadow-sm"
+              : "border-border bg-white hover:border-gray-300",
+          )}
+        >
+          <div
+            className={clsx(
+              "w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0",
+              sequentialProgress ? "bg-primary-100" : "bg-surface-dim",
+            )}
+          >
+            <ListOrdered className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Sequential Progress</p>
+            <p className="text-xs text-text-muted mt-1 leading-relaxed">
+              Learners must complete each lesson in order before unlocking the
+              next one
+            </p>
+          </div>
+          <div
+            className={clsx(
+              "w-10 h-6 rounded-full transition-colors flex-shrink-0 relative",
+              sequentialProgress ? "bg-primary-500" : "bg-gray-300",
+            )}
+          >
+            <div
+              className={clsx(
+                "absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform",
+                sequentialProgress ? "translate-x-5" : "translate-x-1",
+              )}
+            />
+          </div>
+        </button>
+      </div>
 
       {/* Tips */}
       <div className="bg-surface-dim rounded-xl p-4 border border-border">
@@ -138,7 +219,6 @@ export function OptionsTab({ course, onSave }: Props) {
         <ul className="text-xs text-text-secondary space-y-1 list-disc list-inside">
           <li>Free courses get the most enrollments and visibility</li>
           <li>Invitation-only works best for private training programs</li>
-          <li>Set a website URL in the Description tab before publishing</li>
         </ul>
       </div>
 

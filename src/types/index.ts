@@ -29,6 +29,7 @@ export interface Course {
   coverImageId?: string;
   coverImageUrl?: string;
   coverImage?: { id: string; url: string; filename: string; mimeType: string };
+  sequentialProgress: boolean;
   lessons: Lesson[];
   quizzes: Quiz[];
   createdAt: string;
@@ -47,6 +48,15 @@ export interface Lesson {
   sortOrder: number;
   mediaFileId?: string;
   mediaFileUrl?: string;
+  quizId?: string | null;
+  linkedQuiz?: {
+    id: string;
+    title: string;
+    pointsFirstTry: number;
+    pointsSecondTry: number;
+    pointsThirdTry: number;
+    pointsFourthPlus: number;
+  } | null;
   createdAt: string;
 }
 
@@ -54,8 +64,12 @@ export interface Quiz {
   id: string;
   courseId: string;
   title: string;
+  description?: string;
   pointsFirstTry: number;
-  pointsSecondTry?: number;
+  pointsSecondTry: number;
+  pointsThirdTry: number;
+  pointsFourthPlus: number;
+  allowMultipleAttempts: boolean;
   questions: Question[];
   createdAt: string;
 }

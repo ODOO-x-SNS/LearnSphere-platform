@@ -205,6 +205,17 @@ export function useDeleteLesson(courseId: string) {
   });
 }
 
+export function useReorderLessons(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lessons: Array<{ id: string; sortOrder: number }>) =>
+      lessonsApi.reorder(courseId, lessons),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["course", courseId] });
+    },
+  });
+}
+
 // ── Quizzes ──
 export function useCreateQuiz(courseId: string) {
   const qc = useQueryClient();

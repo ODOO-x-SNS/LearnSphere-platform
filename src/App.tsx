@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { LoginPage } from "./pages/Login/LoginPage";
+import { ResetPasswordPage } from "./pages/ResetPassword/ResetPasswordPage";
 import { DashboardPage } from "./pages/Dashboard/DashboardPage";
 import { CoursesPage } from "./pages/Courses/CoursesPage";
 import { CourseFormPage } from "./pages/Courses/CourseFormPage";
@@ -23,6 +24,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="courses" element={<CoursesPage />} />

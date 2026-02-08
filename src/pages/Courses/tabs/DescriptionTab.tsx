@@ -12,14 +12,12 @@ interface Props {
 export function DescriptionTab({ course, onSave }: Props) {
   const [title, setTitle] = useState(course.title);
   const [description, setDescription] = useState(course.description || "");
-  const [websiteUrl, setWebsiteUrl] = useState(course.websiteUrl || "");
   const [tags, setTags] = useState<string[]>(course.tags || []);
   const [tagInput, setTagInput] = useState("");
 
   useEffect(() => {
     setTitle(course.title);
     setDescription(course.description || "");
-    setWebsiteUrl(course.websiteUrl || "");
     setTags(course.tags || []);
     setTagInput("");
   }, [course]);
@@ -38,7 +36,7 @@ export function DescriptionTab({ course, onSave }: Props) {
 
   const handleSave = async () => {
     try {
-      await onSave({ title, description, websiteUrl: websiteUrl || "", tags });
+      await onSave({ title, description, tags });
       toast("success", "Description saved");
     } catch {
       toast("error", "Failed to save description");
@@ -60,12 +58,6 @@ export function DescriptionTab({ course, onSave }: Props) {
         label="Course Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-      />
-      <Input
-        label="Website URL"
-        value={websiteUrl}
-        onChange={(e) => setWebsiteUrl(e.target.value)}
-        placeholder="https://..."
       />
       <Textarea
         label="Description"
@@ -133,8 +125,7 @@ export function DescriptionTab({ course, onSave }: Props) {
             Add relevant tags (e.g., "TypeScript", "Beginner", "Web
             Development")
           </li>
-          <li>Add a website URL to embed course in external site</li>
-          <li>Website URL is required before publishing</li>
+
         </ul>
       </div>
 

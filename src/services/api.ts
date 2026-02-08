@@ -22,6 +22,10 @@ export const authApi = {
     }),
   me: () => api.get<User>("/auth/me"),
   refresh: () => api.post("/auth/refresh"),
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>("/auth/forgot-password", { email, appType: 'admin' }),
+  resetPassword: (token: string, newPassword: string) =>
+    api.post<{ message: string }>("/auth/reset-password", { token, newPassword }),
 };
 
 // Users
@@ -74,9 +78,14 @@ export const coursesApi = {
 export const lessonsApi = {
   create: (courseId: string, data: Partial<Lesson>) =>
     api.post<Lesson>(`/courses/${courseId}/lessons`, data),
+  list: (courseId: string) => api.get<Lesson[]>(`/courses/${courseId}/lessons`),
   update: (id: string, data: Partial<Lesson>) =>
     api.patch<Lesson>(`/lessons/${id}`, data),
   delete: (id: string) => api.delete(`/lessons/${id}`),
+  reorder: (
+    courseId: string,
+    lessons: Array<{ id: string; sortOrder: number }>,
+  ) => api.put(`/courses/${courseId}/lessons/reorder`, { lessons }),
 };
 
 // Quizzes
