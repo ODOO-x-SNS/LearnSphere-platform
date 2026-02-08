@@ -7,6 +7,7 @@ import type {
   PaginatedResponse,
   ReportRow,
   ReportSummary,
+  LearnerDetail,
   CourseRequest,
   Review,
   UploadInitResponse,
@@ -23,9 +24,15 @@ export const authApi = {
   me: () => api.get<User>("/auth/me"),
   refresh: () => api.post("/auth/refresh"),
   forgotPassword: (email: string) =>
-    api.post<{ message: string }>("/auth/forgot-password", { email, appType: 'admin' }),
+    api.post<{ message: string }>("/auth/forgot-password", {
+      email,
+      appType: "admin",
+    }),
   resetPassword: (token: string, newPassword: string) =>
-    api.post<{ message: string }>("/auth/reset-password", { token, newPassword }),
+    api.post<{ message: string }>("/auth/reset-password", {
+      token,
+      newPassword,
+    }),
 };
 
 // Users
@@ -112,8 +119,11 @@ export const reportsApi = {
     api.get<{
       summary: ReportSummary;
       rows: ReportRow[];
-      paging: { nextCursor?: string; limit: number };
     }>("/reports/course-progress", { params }),
+  learners: (params?: Record<string, unknown>) =>
+    api.get<LearnerDetail[]>("/reports/learners", { params }),
+  reviews: () =>
+    api.get<Review[]>("/reports/reviews"),
   dashboardStats: () =>
     api.get<{
       totalCourses: number;

@@ -1,17 +1,24 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { GraduationCap, Eye, EyeOff, ArrowRight, Mail, ArrowLeft } from 'lucide-react';
-import { Button, Input } from '../../components/ui';
-import { useLogin } from '../../hooks/useApi';
-import { toast, ToastContainer } from '../../components/ui/Toast';
-import { authApi } from '../../services/api';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  GraduationCap,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Mail,
+  ArrowLeft,
+} from "lucide-react";
+import { Button, Input } from "../../components/ui";
+import { useLogin } from "../../hooks/useApi";
+import { toast, ToastContainer } from "../../components/ui/Toast";
+import { authApi } from "../../services/api";
 
 export function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const navigate = useNavigate();
@@ -23,12 +30,14 @@ export function LoginPage() {
     login.mutate(
       { email, password },
       {
-        onSuccess: () => navigate('/admin'),
+        onSuccess: () => navigate("/admin"),
         onError: (err: unknown) => {
-          const msg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message || 'Login failed';
-          toast('error', msg);
+          const msg =
+            (err as { response?: { data?: { error?: { message?: string } } } })
+              ?.response?.data?.error?.message || "Login failed";
+          toast("error", msg);
         },
-      }
+      },
     );
   };
 
@@ -40,7 +49,7 @@ export function LoginPage() {
       await authApi.forgotPassword(forgotEmail);
       setForgotSent(true);
     } catch {
-      toast('error', 'Something went wrong. Please try again.');
+      toast("error", "Something went wrong. Please try again.");
     } finally {
       setForgotLoading(false);
     }
@@ -59,12 +68,18 @@ export function LoginPage() {
               <h1 className="text-xl font-extrabold bg-gradient-to-r from-primary-700 to-accent-600 bg-clip-text text-transparent tracking-tight">
                 LearnSphere
               </h1>
-              <p className="text-[11px] text-text-muted font-semibold uppercase tracking-widest">Admin Portal</p>
+              <p className="text-[11px] text-text-muted font-semibold uppercase tracking-widest">
+                Admin Portal
+              </p>
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-text-primary tracking-tight mb-1.5">Welcome back</h2>
-          <p className="text-sm text-text-muted mb-8">Sign in to manage your learning platform</p>
+          <h2 className="text-2xl font-bold text-text-primary tracking-tight mb-1.5">
+            Welcome back
+          </h2>
+          <p className="text-sm text-text-muted mb-8">
+            Sign in to manage your learning platform
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
@@ -78,7 +93,7 @@ export function LoginPage() {
             <div className="relative">
               <Input
                 label="Password"
-                type={showPw ? 'text' : 'password'}
+                type={showPw ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -88,7 +103,11 @@ export function LoginPage() {
                 onClick={() => setShowPw(!showPw)}
                 className="absolute right-3 top-[38px] text-text-muted hover:text-text-primary transition-colors"
               >
-                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPw ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
 
@@ -97,7 +116,15 @@ export function LoginPage() {
                 <input type="checkbox" className="rounded border-border" />
                 Remember me
               </label>
-              <button type="button" onClick={() => { setShowForgot(true); setForgotEmail(''); setForgotSent(false); }} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForgot(true);
+                  setForgotEmail("");
+                  setForgotSent(false);
+                }}
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
                 Forgot password?
               </button>
             </div>
@@ -113,13 +140,23 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-10 p-4 rounded-2xl bg-surface-dim border border-border/60">
-            <p className="text-[11px] text-text-muted mb-2 font-semibold uppercase tracking-wider">Demo accounts</p>
+          {/* <div className="mt-10 p-4 rounded-2xl bg-surface-dim border border-border/60">
+            <p className="text-[11px] text-text-muted mb-2 font-semibold uppercase tracking-wider">
+              Demo accounts
+            </p>
             <div className="space-y-1.5 text-xs text-text-secondary font-mono">
-              <p><span className="font-semibold text-text-primary">Admin:</span> admin@learnsphere.io / Admin123!</p>
-              <p><span className="font-semibold text-text-primary">Instructor:</span> instructor@learnsphere.io / Instructor123!</p>
+              <p>
+                <span className="font-semibold text-text-primary">Admin:</span>{" "}
+                admin@learnsphere.io / Admin123!
+              </p>
+              <p>
+                <span className="font-semibold text-text-primary">
+                  Instructor:
+                </span>{" "}
+                instructor@learnsphere.io / Instructor123!
+              </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -136,9 +173,12 @@ export function LoginPage() {
           <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur-md flex items-center justify-center mx-auto mb-8 ring-1 ring-white/20">
             <GraduationCap className="h-10 w-10" />
           </div>
-          <h2 className="text-3xl font-bold mb-4 tracking-tight">Empower Learning</h2>
+          <h2 className="text-3xl font-bold mb-4 tracking-tight">
+            Empower Learning
+          </h2>
           <p className="text-white/75 text-base leading-relaxed">
-            Create, manage, and track courses with an intuitive admin experience designed for modern educators.
+            Create, manage, and track courses with an intuitive admin experience
+            designed for modern educators.
           </p>
           <div className="flex items-center justify-center gap-8 mt-12">
             <div className="text-center">
@@ -153,7 +193,9 @@ export function LoginPage() {
             <div className="w-px h-12 bg-white/15" />
             <div className="text-center">
               <p className="text-3xl font-bold">98%</p>
-              <p className="text-xs text-white/50 mt-1 font-medium">Satisfaction</p>
+              <p className="text-xs text-white/50 mt-1 font-medium">
+                Satisfaction
+              </p>
             </div>
           </div>
         </div>
@@ -173,9 +215,12 @@ export function LoginPage() {
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-600 flex items-center justify-center mb-5">
                   <Mail className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="text-xl font-bold text-text-primary mb-1.5">Reset your password</h2>
+                <h2 className="text-xl font-bold text-text-primary mb-1.5">
+                  Reset your password
+                </h2>
                 <p className="text-sm text-text-muted mb-6">
-                  Enter the email address associated with your account and we'll send you a link to reset your password.
+                  Enter the email address associated with your account and we'll
+                  send you a link to reset your password.
                 </p>
                 <form onSubmit={handleForgotSubmit} className="space-y-5">
                   <Input
@@ -185,7 +230,12 @@ export function LoginPage() {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                   />
-                  <Button type="submit" className="w-full" size="lg" loading={forgotLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    loading={forgotLoading}
+                  >
                     Send reset link
                   </Button>
                 </form>
@@ -195,11 +245,19 @@ export function LoginPage() {
                 <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
                   <Mail className="h-7 w-7 text-green-600" />
                 </div>
-                <h2 className="text-xl font-bold text-text-primary mb-2">Check your email</h2>
+                <h2 className="text-xl font-bold text-text-primary mb-2">
+                  Check your email
+                </h2>
                 <p className="text-sm text-text-muted mb-6">
-                  If an account exists for <strong>{forgotEmail}</strong>, we've sent a password reset link. The link expires in 1 hour.
+                  If an account exists for <strong>{forgotEmail}</strong>, we've
+                  sent a password reset link. The link expires in 1 hour.
                 </p>
-                <Button onClick={() => setShowForgot(false)} className="w-full" size="lg" variant="outline">
+                <Button
+                  onClick={() => setShowForgot(false)}
+                  className="w-full"
+                  size="lg"
+                  variant="outline"
+                >
                   Back to sign in
                 </Button>
               </div>

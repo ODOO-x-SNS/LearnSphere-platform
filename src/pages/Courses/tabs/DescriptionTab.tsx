@@ -125,7 +125,6 @@ export function DescriptionTab({ course, onSave }: Props) {
             Add relevant tags (e.g., "TypeScript", "Beginner", "Web
             Development")
           </li>
-
         </ul>
       </div>
 

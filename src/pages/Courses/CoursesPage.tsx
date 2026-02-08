@@ -18,6 +18,13 @@ import {
   CheckCircle2,
   X,
 } from "lucide-react";
+
+function formatDuration(totalSec: number): string {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
+}
 import { Header } from "../../components/layout/Header";
 import {
   Button,
@@ -627,7 +634,7 @@ function CourseCard({
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />{" "}
-            {Math.round(course.totalDurationSec / 60)}m
+            {formatDuration(course.totalDurationSec)}
           </span>
         </div>
       </Card>
@@ -716,7 +723,7 @@ function CourseTable({
                 {c.lessonsCount}
               </td>
               <td className="px-6 py-4 text-sm text-text-secondary tabular-nums">
-                {Math.round(c.totalDurationSec / 60)}m
+                {formatDuration(c.totalDurationSec)}
               </td>
               <td className="px-6 py-4">
                 <div className="flex gap-1">

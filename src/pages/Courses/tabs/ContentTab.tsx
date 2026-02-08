@@ -33,6 +33,23 @@ import {
 import type { Course, Lesson, Quiz } from "../../../types";
 import { clsx } from "clsx";
 
+/** Format seconds into hh:mm:ss */
+function formatDuration(totalSec: number): string {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
+}
+
+/** Parse hh:mm:ss string into total seconds */
+function parseDuration(str: string): number {
+  const parts = str.split(":").map(Number);
+  if (parts.length === 3)
+    return parts[0] * 3600 + parts[1] * 60 + (parts[2] || 0);
+  if (parts.length === 2) return parts[0] * 60 + (parts[1] || 0);
+  return parts[0] || 0;
+}
+
 const DRIVE_FILE_RE = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
 const DRIVE_OPEN_RE =
   /drive\.google\.com\/(?:open\?id=|uc\?id=)([a-zA-Z0-9_-]+)/;
@@ -99,7 +116,7 @@ export function ContentTab({ course }: { course: Course }) {
     title: "",
     type: "VIDEO",
     externalUrl: "",
-    durationSec: 0,
+    durationStr: "00:00:00",
     description: "",
     allowDownload: false,
     quizId: "",
@@ -160,7 +177,7 @@ export function ContentTab({ course }: { course: Course }) {
       title: "",
       type: "VIDEO",
       externalUrl: "",
-      durationSec: 0,
+      durationStr: "00:00:00",
       description: "",
       allowDownload: false,
       quizId: "",
@@ -174,7 +191,7 @@ export function ContentTab({ course }: { course: Course }) {
       title: lesson.title,
       type: lesson.type,
       externalUrl: lesson.externalUrl || "",
-      durationSec: lesson.durationSec,
+      durationStr: formatDuration(lesson.durationSec),
       description: lesson.description || "",
       allowDownload: lesson.allowDownload,
       quizId: lesson.quizId || "",
@@ -189,7 +206,7 @@ export function ContentTab({ course }: { course: Course }) {
       type: form.type as Lesson["type"],
       externalUrl:
         form.type !== "QUIZ" ? form.externalUrl || undefined : undefined,
-      durationSec: Number(form.durationSec) || 0,
+      durationSec: parseDuration(form.durationStr),
       description: form.description || undefined,
       allowDownload: form.type !== "QUIZ" ? form.allowDownload : false,
       quizId: form.type === "QUIZ" && form.quizId ? form.quizId : undefined,
@@ -240,7 +257,7 @@ export function ContentTab({ course }: { course: Course }) {
           </h3>
           <p className="text-[13px] text-text-muted">
             {lessons.length} lesson{lessons.length !== 1 ? "s" : ""} &middot;{" "}
-            {Math.round(course.totalDurationSec / 60)} min total
+            {formatDuration(course.totalDurationSec)} total
           </p>
         </div>
         <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
@@ -302,7 +319,7 @@ export function ContentTab({ course }: { course: Course }) {
                     {lesson.durationSec > 0 && (
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {Math.round(lesson.durationSec / 60)}m
+                        {formatDuration(lesson.durationSec)}
                       </span>
                     )}
                     {lesson.allowDownload &&
@@ -424,12 +441,11 @@ export function ContentTab({ course }: { course: Course }) {
             ]}
           />
           <Input
-            label="Duration (seconds)"
-            type="number"
-            value={String(form.durationSec)}
-            onChange={(e) =>
-              setForm({ ...form, durationSec: parseInt(e.target.value) || 0 })
-            }
+            label="Duration (hh:mm:ss)"
+            type="text"
+            placeholder="00:05:30"
+            value={form.durationStr}
+            onChange={(e) => setForm({ ...form, durationStr: e.target.value })}
           />
           {form.type === "QUIZ" && (
             <div className="col-span-2">

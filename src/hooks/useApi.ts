@@ -263,7 +263,22 @@ export function useCourseProgress(params?: Record<string, unknown>) {
     queryKey: ["reports", "course-progress", params],
     queryFn: () => reportsApi.courseProgress(params).then((r) => r.data),
     staleTime: 30_000,
-    enabled: !!params?.courseId,
+  });
+}
+
+export function useLearners(params?: Record<string, unknown>) {
+  return useQuery({
+    queryKey: ["reports", "learners", params],
+    queryFn: () => reportsApi.learners(params).then((r) => r.data),
+    staleTime: 30_000,
+  });
+}
+
+export function useAllReviews() {
+  return useQuery({
+    queryKey: ["reports", "reviews"],
+    queryFn: () => reportsApi.reviews().then((r) => r.data),
+    staleTime: 30_000,
   });
 }
 

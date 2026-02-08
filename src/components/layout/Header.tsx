@@ -39,11 +39,11 @@ export function Header({ title, subtitle, actions }: HeaderProps) {
             {searchOpen && <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-muted" />}
           </div>
 
-          {/* Notifications */}
+          {/* Notifications
           <button className="relative p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors">
             <Bell className="h-[18px] w-[18px]" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger-500 rounded-full ring-2 ring-white" />
-          </button>
+          </button> */}
 
           {/* Divider */}
           {actions && <div className="w-px h-6 bg-border mx-1" />}

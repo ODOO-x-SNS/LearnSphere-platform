@@ -70,6 +70,7 @@ export interface Quiz {
   pointsThirdTry: number;
   pointsFourthPlus: number;
   allowMultipleAttempts: boolean;
+  timeLimitSec?: number | null;
   questions: Question[];
   createdAt: string;
 }
@@ -111,15 +112,21 @@ export interface Invitation {
 }
 
 export interface ReportRow {
+  enrollmentId: string;
   userId: string;
   userName: string;
   email: string;
+  avatarUrl?: string;
+  courseId: string;
+  courseTitle: string;
   progress: number;
   completedLessons: number;
   totalLessons: number;
-  quizScore?: number;
-  lastActivity: string;
+  quizScore?: number | null;
   status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  enrolledAt: string;
+  completedDate?: string | null;
+  lastActivity: string;
 }
 
 export interface ReportSummary {
@@ -127,6 +134,37 @@ export interface ReportSummary {
   completionRate: number;
   avgProgress: number;
   avgQuizScore: number;
+}
+
+export interface LearnerDetail {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  totalPoints: number;
+  status: string;
+  joinedAt: string;
+  totalCourses: number;
+  completedCourses: number;
+  avgQuizScore: number | null;
+  badgeCount: number;
+  badges: Array<{ name: string; icon: string | null; earnedAt: string }>;
+  enrollments: Array<{
+    courseId: string;
+    courseTitle: string;
+    status: string;
+    lessonsCompleted: number;
+    enrolledAt: string;
+    completedDate: string | null;
+  }>;
+  reviews: Array<{
+    id: string;
+    courseId: string;
+    courseTitle: string;
+    rating: number;
+    text: string | null;
+    createdAt: string;
+  }>;
 }
 
 export interface CourseRequest {
@@ -152,10 +190,11 @@ export interface CourseRequest {
 export interface Review {
   id: string;
   userId: string;
-  userName: string;
   rating: number;
-  text: string;
+  text: string | null;
   createdAt: string;
+  user: { id: string; name: string | null; email: string; avatarUrl: string | null };
+  course: { id: string; title: string };
 }
 
 export interface Paging {

@@ -32,7 +32,10 @@ export default function App() {
             <Route path="instructors" element={<InstructorsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="course-requests" element={<CourseRequestsPage />} />
-            <Route path="instructor-requests" element={<InstructorRequestsPage />} />
+            <Route
+              path="instructor-requests"
+              element={<InstructorRequestsPage />}
+            />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />

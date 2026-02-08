@@ -190,9 +190,9 @@ function NotificationsTab() {
   return (
     <div className="max-w-2xl">
       <Card>
-        <h3 className="font-semibold text-text-primary mb-4 flex items-center gap-2">
+        {/* <h3 className="font-semibold text-text-primary mb-4 flex items-center gap-2">
           <Bell className="h-5 w-5 text-warning-500" /> Notification Preferences
-        </h3>
+        </h3> */}
         <div className="space-y-4">
           {items.map((item) => (
             <div key={item.key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
